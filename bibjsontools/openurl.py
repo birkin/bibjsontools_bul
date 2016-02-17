@@ -7,11 +7,9 @@ try:
     from urlparse import parse_qs
 except ImportError:
     from cgi import parse_qs
-import sys
-try:
-    import json
-except ImportError:
-    import simplejson as json
+
+#List of keys that should be present in any bibjson object.
+REQUIRED_KEYS = ['title']
 
 
 class OpenURLParser(object):
@@ -69,7 +67,7 @@ class OpenURLParser(object):
         """
         Determine the type of citation.  Defaults to book.
         """
-        #Defaulting to type of book.  
+        #Defaulting to type of book.
         btype = 'book'
         genre = self._find_key(['rft.genre', 'genre'])
         format = self._find_key(['rft_val_fmt'])
@@ -90,6 +88,8 @@ class OpenURLParser(object):
                     return 'book'
                 elif 'article' in genre:
                     return 'article'
+                elif 'dissertation' in genre:
+                    return 'dissertation'
         #Try to guess based on incoming values.
         elif self._find_key(['rft.atitle', 'atitle']):
             btype = 'article'
@@ -112,6 +112,10 @@ class OpenURLParser(object):
                                      'rfe_dat'])
         for k, values in ids:
             for v in values:
+                #Remove line breaks from values.
+                v = v.replace('\n', '')
+                if v == '':
+                    continue
                 d = {}
                 d['id'] = None
                 d['type'] = None
@@ -121,6 +125,9 @@ class OpenURLParser(object):
                         #referent['doi'] = v.lstrip('info:doi/')
                         d['type'] = 'doi'
                         d['id'] = "doi:%s" % v.lstrip('info:doi/')
+                    elif v.startswith('doi:'):
+                        d['type'] = 'doi'
+                        d['id'] = "%s" % v
                     elif v.startswith('info:pmid/'):
                         d['type'] = 'pmid'
                         d['id'] = v
@@ -139,7 +146,9 @@ class OpenURLParser(object):
                 elif k == 'doi':
                     d['type'] = 'doi'
                     d['id'] = "doi:%s" % v
-
+                #Check for blank dois
+                if d['id'] == "doi:":
+                    continue
                 #If we found an id add it to the output.
                 if d['id']:
                     out.append(d)
@@ -156,7 +165,7 @@ class OpenURLParser(object):
                             'id': isn})
         for eissn in self._find_repeating_key(['rft.eissn', 'eissn']):
             out.append({'type': 'eissn',
-                        'id': issn})
+                        'id': eissn})
         #OCLCs
         oclc = pull_oclc(self.data)
         if (oclc) and (oclc not in out):
@@ -166,14 +175,20 @@ class OpenURLParser(object):
     def titles(self):
         out = {}
         #Article or book titles will be set to bibjson title.
-        out['title'] = self._find_key(['rft.atitle',
-                                       'atitle',
-                                       'rft.btitle',
-                                       'btitle'])
-        #Book titles and unknowns could also be in title 
-        if (not out['title']) and (self.type == 'book' or self.type == 'unknown'):
-            out['title'] = self._find_key(['rft.title',
-                                            'title'])
+        #These are in order of prefernce, short titles are last.
+        out['title'] = self._find_key(
+            [
+                'rft.atitle',
+                'atitle',
+                'rft.btitle',
+                'btitle',
+                'rft.title',
+                'title',
+                #Abbreviated or short journal title. This is used for journal title abbreviations, where known, i.e. "J Am Med Assn"
+                'stitle',
+                'rft.stitle'
+            ]
+        )
         #Journal title
         if self.type in ['article', 'inbook']:
             jtitle = self._find_key(['rft.jtitle',
@@ -187,15 +202,15 @@ class OpenURLParser(object):
                 #Try to pull short title code.
                 stitle = self.data.get('rft.stitle', None)
                 if not stitle:
-                    stitle = self.data.get('stitle', None) 
+                    stitle = self.data.get('stitle', None)
                 if stitle:
-                    ti['shortcode'] = stitle[0] 
+                    ti['shortcode'] = stitle[0]
                 out['journal'] = ti
         return out
-        
+
     def authors(self):
         """
-        Pull authors.  Less straightforward than you might think.  
+        Pull authors.  Less straightforward than you might think.
         """
         out = []
         authors = self._find_key_values([
@@ -209,8 +224,8 @@ class OpenURLParser(object):
             for v in values:
                 if (k == 'rft.au') or (k == 'au') or\
                     (k == 'rft.aulast') or (k == 'aulast'):
-                    #If it's a full name, set here.  
-                    if (k == 'rft.au') or (k == 'au'): 
+                    #If it's a full name, set here.
+                    if (k == 'rft.au') or (k == 'au'):
                         au = {'name': v}
                     else:
                         au = {}
@@ -222,8 +237,8 @@ class OpenURLParser(object):
                         au['firstname'] = aufirst
                     auinitm = self._find_key( ['rft.auinitm', 'auinitm'] )
                     if auinitm:
-                        au['_minitial'] = auinitm         
-                    #Put the full name (minus middlename) together now if we can. 
+                        au['_minitial'] = auinitm
+                    #Put the full name (minus middlename) together now if we can.
                     if not au.has_key('name'):
                         #If there isn't a first and last name, just use last.
                         last = au.get('lastname', '')
@@ -234,44 +249,6 @@ class OpenURLParser(object):
                     if au not in out:
                         out.append(au)
         return out
-
-    # def authors(self):
-    #     """
-    #     Pull authors.  Less straightforward than you might think.  
-    #     """
-    #     out = []
-    #     authors = self._find_key_values([
-    #                                     'rft.au',
-    #                                     'au',
-    #                                     'rft.aulast',
-    #                                     'aulast'])
-    #     for k,values in authors:
-    #         for v in values:
-    #             if (k == 'rft.au') or (k == 'au') or\
-    #                 (k == 'rft.aulast') or (k == 'aulast'):
-    #                 #If it's a full name, set here.  
-    #                 if (k == 'rft.au') or (k == 'au'): 
-    #                     au = {'name': v}
-    #                 else:
-    #                     au = {}
-    #                 aulast = self._find_key(['rft.aulast', 'aulast'])
-    #                 if aulast:
-    #                     au['lastname'] = aulast
-    #                 aufirst = self._find_key(['rft.aufirst', 'aufirst'])
-    #                 if aufirst:
-    #                     au['firstname'] = aufirst
-    #                 
-    #                 #Put the full name together now if we can. 
-    #                 if not au.has_key('name'):
-    #                     #If there isn't a first and last name, just use last.
-    #                     last = au.get('lastname', '')
-    #                     first = au.get('firstname', '')
-    #                     name = "%s, %s" % (last, first.strip())
-    #                     au['name'] = name.rstrip(', ')
-    #                 #Don't duplicate authors
-    #                 if au not in out:
-    #                     out.append(au)
-    #     return out
 
     def pages(self):
         """
@@ -301,7 +278,7 @@ class OpenURLParser(object):
         out['start_page'] = start
 
         return out
-    
+
     def rfr(self):
         """
         Get the referring site.
@@ -339,14 +316,18 @@ class OpenURLParser(object):
             d['year'] = year[:4]
         #Pages
         d.update(self.pages())
-        #Remove empty keys
+        #Remove empty keys - except those in the required keys list.
         for k,v in d.items():
             if not v:
-                del d[k]
+                if k in REQUIRED_KEYS:
+                    #Set to unknown
+                    d[k] = u'Unknown'
+                else:
+                    del d[k]
         #add the original openurl
         d['_openurl'] = BibJSONToOpenURL(d).parse()
         return d
-        
+
 def from_openurl(query):
     """
     Alias/shortcut to parse the provided query.
@@ -356,11 +337,11 @@ def from_openurl(query):
 
 def from_dict(request_dict):
     """
-    Alias/shortcut to handle dictionary inputs. 
+    Alias/shortcut to handle dictionary inputs.
     Use for this is passing Django request.GET as dict.
     """
     b = OpenURLParser('', query_dict=request_dict)
-    return b.parse() 
+    return b.parse()
 
 class BibJSONToOpenURL(object):
     def __init__(self, bibjson):
@@ -400,13 +381,16 @@ class BibJSONToOpenURL(object):
             out['rft_val_fmt'] = 'info:ofi/fmt:kev:mtx:book'
             out['rft.btitle'] = title
             out['rft.genre'] = 'book'
-            if bib['type'] == 'inbook':
+            if btype == 'inbook':
                 out['rft.genre'] = 'bookitem'
                 jrnl = bib.get('journal', {})
                 out['rft.btitle'] = jrnl.get('name')
                 #For Illiad add as title
                 out['title'] = jrnl.get('name')
-                out['rft.atitle'] = bib['title']
+                out['rft.atitle'] = bib.get('title', 'unknown')
+        elif (btype == 'dissertation'):
+            out['rft.genre'] = 'dissertation'
+            out['rft.title'] = bib.get('title')
         else:
             #Try to fill in a title for unkowns
             out['rft.genre'] = 'unknown'
@@ -441,9 +425,9 @@ class BibJSONToOpenURL(object):
             elif idt['type'] == 'isbn':
                 out['rft.isbn'] = idt['id']
             elif idt['type'] == 'eissn':
-                out['rfit.eissn'] = idt['id']
+                out['rft.eissn'] = idt['id']
             elif idt['type'] == 'doi':
-                out['rft_id'] = 'info:doi/%s' % idt['id']
+                out['rft_id'] = 'info:doi/%s' % idt['id'].strip('doi:')
             elif idt['type'] == 'pmid':
                 #don't add the info:pmid if not necessary
                 v = idt['id']
