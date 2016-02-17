@@ -8,4 +8,9 @@ Tools for working with [BibJSON](http://bibjson.org/).
 
 
 
-[![Build Status](https://secure.travis-ci.org/lawlesst/bibjsontools.png)](http://travis-ci.org/lawlesst/bibjsontools)
+#### history ####
+
+- v 0.4
+    - all data-handling now unicode
+
+---

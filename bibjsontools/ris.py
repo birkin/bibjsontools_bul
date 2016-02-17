@@ -1,3 +1,7 @@
+# -*- coding: utf-8 -*-
+
+from __future__ import unicode_literals
+
 """
 Convert from BibJSON to RIS.
 Adapted from https://github.com/okfn/bibserver/blob/master/parserscrapers_plugins/RISParser.py
@@ -62,7 +66,7 @@ FIELD_MAP = {
 def convert(bib):
 	"""
 	Convert BibJSON to the RIS format for import into various utilities.
-	To do: add some test cases. 
+	To do: add some test cases.
 	"""
 	ris = {}
 	if bib['type'] == 'article':

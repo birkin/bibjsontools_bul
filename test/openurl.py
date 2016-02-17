@@ -1,11 +1,19 @@
-
 # -*- coding: utf-8 -*-
+
+from __future__ import unicode_literals
+
+import json, logging, pprint, sys, unittest
+
+logging.basicConfig(
+    level=logging.WARNING,
+    format='[%(asctime)s] %(levelname)s [%(module)s-%(funcName)s()::%(lineno)d] %(message)s', datefmt='%d/%b/%Y %H:%M:%S' )
+log = logging.getLogger('bibjsontools')
+
 try:
-    import json
-except ImportError:
-    import simplejson as json
-import unittest
-from pprint import pprint
+    import bibjsontools  # accessed when running `python ./test.py`
+except:
+    sys.path.append( '../' )  # accessed when running `python ./openurl.py TestFromOpenURL.test_unicode_dump`
+    import bibjsontools
 
 try:
     from urlparse import parse_qs
@@ -16,6 +24,7 @@ from bibjsontools import from_openurl
 from bibjsontools import from_dict
 from bibjsontools import to_openurl
 from bibjsontools import OpenURLParser
+
 
 class TestFromOpenURL(unittest.TestCase):
 
@@ -294,17 +303,17 @@ class TestToOpenURL(unittest.TestCase):
     def test_missing_title(self):
         #Mock a sample request dict coming from Django.
         request_dict = {
-        'rft.pub': [u'Triple Canopy'],
-        'rft_val_fmt': [u'info:ofi/fmt:kev:mtx:book'],
-        'rfr_id': [u'info:sid/libx:brown'],
-        'rft.au': [u'Coleman,&#32;Gabriella'],
-        'rft.aulast': [u'Coleman'],
-        'rft.aufirst': [u'Gabriella'],
-        'rft_id': [u'http://canopycanopycanopy.com/15/our_weirdness_is_free'],
-        'rft.btitle': [u'Our Weirdness Is Free: The logic of Anonymous \u2014 online army, agent of chaos, and seeker of justice'],
-        'url_ver': [u'Z39.88-2004'],
-        'rft.atitle': [u''],
-        'rft.genre': [u'bookitem']}
+        'rft.pub': ['Triple Canopy'],
+        'rft_val_fmt': ['info:ofi/fmt:kev:mtx:book'],
+        'rfr_id': ['info:sid/libx:brown'],
+        'rft.au': ['Coleman,&#32;Gabriella'],
+        'rft.aulast': ['Coleman'],
+        'rft.aufirst': ['Gabriella'],
+        'rft_id': ['http://canopycanopycanopy.com/15/our_weirdness_is_free'],
+        'rft.btitle': ['Our Weirdness Is Free: The logic of Anonymous \u2014 online army, agent of chaos, and seeker of justice'],
+        'url_ver': ['Z39.88-2004'],
+        'rft.atitle': [''],
+        'rft.genre': ['bookitem']}
         b = from_dict(request_dict)
         ourl = to_openurl(b)
         parsed_ourl = parse_qs(ourl)

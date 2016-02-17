@@ -1,22 +1,19 @@
-#import ez_setup
-#ez_setup.use_setuptools()
+# -*- coding: utf-8 -*-
 
-from setuptools import setup, find_packages
+from __future__ import unicode_literals
+
+import json
+from setuptools import find_packages, setup
+
 
 install_requires = []
-try:
-    import json
-except ImportError:
-    install_requires.append('simplejson')
 
 setup(
     name='bibjsontools',
-    version='0.3',
+    version='0.4',
     author='Ted Lawless',
     author_email='lawlesst@gmail.com',
     packages=find_packages(),
     package_data={'bibjsontools': ['test/data/*.*']},
     install_requires=install_requires,
 )
-
-

@@ -1,8 +1,13 @@
+# -*- coding: utf-8 -*-
+
+from __future__ import unicode_literals
+
 """
 Converting OpenURLs to BibJSON and back.
 """
 
-import urllib
+import logging, pprint, urllib
+
 try:
     from urlparse import parse_qs
 except ImportError:
@@ -12,12 +17,22 @@ except ImportError:
 REQUIRED_KEYS = ['title']
 
 
+logging.basicConfig(
+    level=logging.WARNING,
+    format='[%(asctime)s] %(levelname)s [%(module)s-%(funcName)s()::%(lineno)d] %(message)s', datefmt='%d/%b/%Y %H:%M:%S' )
+log = logging.getLogger('bibjsontools')
+
+
 class OpenURLParser(object):
 
     def __init__(self, openurl, query_dict=None):
         if query_dict:
+            log.debug( 'query_dict perceived' )
             self.data = query_dict
         else:
+            log.debug( 'openurl perceived' )
+            log.debug( 'type(openurl), `%s`' % type(openurl) )
+            log.debug( 'openurl, ```%s```' % openurl )
             self.query = openurl
             self.data = parse_qs(openurl)
 
@@ -325,6 +340,7 @@ class OpenURLParser(object):
                 else:
                     del d[k]
         #add the original openurl
+        log.debug( 'd before being sent to BibJSONToOpenURL, ```%s```' % pprint.pformat(d) )
         d['_openurl'] = BibJSONToOpenURL(d).parse()
         return d
 
@@ -332,7 +348,9 @@ def from_openurl(query):
     """
     Alias/shortcut to parse the provided query.
     """
+    log.debug( 'query, ```%s```' % pprint.pformat(query) )
     b = OpenURLParser(query)
+    log.debug( 'b, ```%s```' % pprint.pformat(b) )
     return b.parse()
 
 def from_dict(request_dict):
@@ -346,6 +364,8 @@ def from_dict(request_dict):
 class BibJSONToOpenURL(object):
     def __init__(self, bibjson):
         self.data = bibjson
+        log.debug( 'type(self.data), `%s`' % type(self.data) )
+        log.debug( 'self.data, ```%s```' % pprint.pformat(self.data) )
 
     def parse(self):
         #return self.data
@@ -445,13 +465,23 @@ class BibJSONToOpenURL(object):
         #See - http://stackoverflow.com/questions/120951/how-can-i-normalize-a-url-in-python
         #http://stackoverflow.com/a/8152242
         kevs = []
+        log.debug( 'out before k-v processing, ```%s```' % pprint.pformat(out) )
         for k,v in out.iteritems():
-            if isinstance(v, unicode):
-                v = v.encode('utf-8', 'ignore')
-            _k = urllib.quote_plus(k, safe='/')
-            _v = urllib.quote_plus(v, safe='/')
-            kevs.append('%s=%s' % (_k, _v))
-        return '&'.join(kevs)
+            # if isinstance(v, unicode):
+            #     v = v.encode('utf-8', 'ignore')
+            log.debug( 'k,v -- ```%s, %s```' % (k,v) )
+            log.debug( 'type(k), type(v) -- `%s, %s`' % (type(k), type(v)) )
+            k8 = k.encode( 'utf-8' )
+            v8 = v.encode( 'utf-8' )
+            safe8 = '/'.encode( 'utf-8' )
+            _k = urllib.quote_plus( k8, safe=safe8 )
+            _v = urllib.quote_plus( v8, safe=safe8 )
+            log.debug( 'type(_k), type(_v), `%s, %s`' % (type(_k), type(_v)) )
+            kevs.append( '%s=%s' % (_k.decode('utf-8'), _v.decode('utf-8')) )
+        log.debug( 'kevs, ```%s```' % pprint.pformat(kevs) )
+        openurl = '&'.join( kevs )
+        log.debug( 'openurl, ```%s```' % openurl )
+        return openurl
 
 
 
