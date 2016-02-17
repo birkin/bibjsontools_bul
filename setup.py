@@ -8,7 +8,7 @@ from setuptools import find_packages, setup
 
 setup(
     name='bibjsontools',
-    version='0.4',
+    version='0.4c',
     author='Ted Lawless',
     author_email='lawlesst@gmail.com',
     packages=find_packages(),
