@@ -20,7 +20,7 @@ REQUIRED_KEYS = ['title']
 logging.basicConfig(
     level=logging.WARNING,
     format='[%(asctime)s] %(levelname)s [%(module)s-%(funcName)s()::%(lineno)d] %(message)s', datefmt='%d/%b/%Y %H:%M:%S' )
-log = logging.getLogger('bibjsontools')
+log = logging.getLogger( 'bibjsontools' )
 
 
 class OpenURLParser(object):
@@ -139,10 +139,10 @@ class OpenURLParser(object):
                     if v.startswith('info:doi/'):
                         #referent['doi'] = v.lstrip('info:doi/')
                         d['type'] = 'doi'
-                        d['id'] = "doi:%s" % v.lstrip('info:doi/')
+                        d['id'] = 'doi:%s' % v.lstrip('info:doi/')
                     elif v.startswith('doi:'):
                         d['type'] = 'doi'
-                        d['id'] = "%s" % v
+                        d['id'] = '%s' % v
                     elif v.startswith('info:pmid/'):
                         d['type'] = 'pmid'
                         d['id'] = v
@@ -160,9 +160,9 @@ class OpenURLParser(object):
                     d['id'] = v
                 elif k == 'doi':
                     d['type'] = 'doi'
-                    d['id'] = "doi:%s" % v
+                    d['id'] = 'doi:%s' % v
                 #Check for blank dois
-                if d['id'] == "doi:":
+                if d['id'] == 'doi:':
                     continue
                 #If we found an id add it to the output.
                 if d['id']:
@@ -258,7 +258,7 @@ class OpenURLParser(object):
                         #If there isn't a first and last name, just use last.
                         last = au.get('lastname', '')
                         first = au.get('firstname', '')
-                        name = "%s, %s" % (last, first.strip())
+                        name = '%s, %s' % (last, first.strip())
                         au['name'] = name.rstrip(', ')
                     #Don't duplicate authors
                     if au not in out:
@@ -287,7 +287,7 @@ class OpenURLParser(object):
                 #start = ''
                 #end = ''
         if start and end:
-            pages = "%s - %s" % (start, end)
+            pages = '%s - %s' % (start, end)
             out['pages'] = pages.strip()
         out['end_page'] = end
         out['start_page'] = start
@@ -336,7 +336,7 @@ class OpenURLParser(object):
             if not v:
                 if k in REQUIRED_KEYS:
                     #Set to unknown
-                    d[k] = u'Unknown'
+                    d[k] = 'Unknown'
                 else:
                     del d[k]
         #add the original openurl
@@ -419,7 +419,7 @@ class BibJSONToOpenURL(object):
             out['rft.jtitle'] = jrnl.get('name')
             out['rft.stitle'] = jrnl.get('shortcode')
 
-        out['rfr_id'] = "info:sid/%s" % (bib.get('_rfr', ''))
+        out['rfr_id'] = 'info:sid/%s' % (bib.get('_rfr', ''))
 
         #Do the common attributes
         out['rft.date'] = bib.get('year', '')[:4]
@@ -471,8 +471,8 @@ class BibJSONToOpenURL(object):
             #     v = v.encode('utf-8', 'ignore')
             log.debug( 'k,v -- ```%s, %s```' % (k,v) )
             log.debug( 'type(k), type(v) -- `%s, %s`' % (type(k), type(v)) )
-            k8 = k.encode( 'utf-8' )
-            v8 = v.encode( 'utf-8' )
+            k8 = k.encode( 'utf-8', 'ignore' )
+            v8 = v.encode( 'utf-8', 'ignore' )
             safe8 = '/'.encode( 'utf-8' )
             _k = urllib.quote_plus( k8, safe=safe8 )
             _v = urllib.quote_plus( v8, safe=safe8 )

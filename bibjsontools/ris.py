@@ -103,5 +103,5 @@ def convert(bib):
 
 	out = ''
 	for k,v in ris.items():
-		out += "%s  - %s\n" % (k, v)
+		out += '%s  - %s\n' % (k, v)
 	return out
