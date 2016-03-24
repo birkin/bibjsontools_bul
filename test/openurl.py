@@ -50,7 +50,6 @@ class TestFromOpenURL(unittest.TestCase):
 
     def test_article_stitle(self):
         q = 'rft_val_fmt=info:ofi/fmt:kev:mtx:journal&rfr_id=info:sid/www.isinet.com:WoK:UA&rft.spage=30&rft.issue=1&rft.epage=42&rft.title=INTEGRATIVE%20BIOLOGY&rft.aulast=Castillo&url_ctx_fmt=info:ofi/fmt:kev:mtx:ctx&rft.date=2009&rft.volume=1&url_ver=Z39.88-2004&rft.stitle=INTEGR%20BIOL&rft.atitle=Manipulation%20of%20biological%20samples%20using%20micro%20and%20nano%20techniques&rft.au=Svendsen%2C%20W&rft_id=info:doi/10%2E1039%2Fb814549k&rft.auinit=J&rft.issn=1757-9694&rft.genre=article'
-
         bib = from_openurl(q)
         self.assertEqual(bib['title'],
                          'Manipulation of biological samples using micro and nano techniques')
@@ -151,28 +150,33 @@ class TestFromOpenURL(unittest.TestCase):
         self.assertEqual(bib['title'], 'Staré písemné památky žen a dcer českých.')
         self.assertEqual(nbib['title'], 'Staré písemné památky žen a dcer českých.')
 
-
-
-    def test_unicode_name_dump(self):
-        """ Checks unicode that triggered unicode error. """
-        ## initial querystring clicked
-        q = 'sid=FirstSearch%3AWorldCat&genre=book&title=Zen&date=1978&aulast=Yoshioka&aufirst=Tōichi&id=doi%3A&pid=6104671<fssessid>0<%2Ffssessid><edition>1st+ed.<%2Fedition>&url_ver=Z39.88-2004&rfr_id=info%3Asid%2Ffirstsearch.oclc.org%3AWorldCat&rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook&rft.genre=book&req_dat=<sessionid>0<%2Fsessionid>&rfe_dat=<accessionnumber>6104671<%2Faccessionnumber>&rft_id=info%3Aoclcnum%2F6104671&rft.aulast=Yoshioka&rft.aufirst=Tōichi&rft.btitle=Zen&rft.date=1978&rft.place=Osaka++Japan&rft.pub=Hoikusha&rft.edition=1st+ed.&rft.genre=book'
+    def test_unicode_in_unicode_string(self):
+        """ Checks unicode querystring containing good unicode.
+            Django prep example...
+            >>> from django.utils.encoding import uri_to_iri  # <https://docs.djangoproject.com/en/1.9/ref/unicode/#uri-and-iri-handling>
+            >>> utf8_str = request.META['QUERY_STRING']  # includes, for the example below, `aufirst=T%C5%8Dichi`
+            >>> unicode_str = uri_to_iri( utf8_str )  # includes, for the example below, `aufirst=T\u014dichi`
+            >>> bib_dct = from_openurl( unicode_str )
+            """
+        q = 'sid=FirstSearch:WorldCat&genre=book&title=Zen&date=1978&aulast=Yoshioka&aufirst=T\u014dichi&id=doi:&pid=6104671<fssessid>0</fssessid><edition>1st+ed.</edition>&url_ver=Z39.88-2004&rfr_id=info:sid/firstsearch.oclc.org:WorldCat&rft_val_fmt=info:ofi/fmt:kev:mtx:book&rft.genre=book&req_dat=<sessionid>0</sessionid>&rfe_dat=<accessionnumber>6104671</accessionnumber>&rft_id=info:oclcnum/6104671&rft.aulast=Yoshioka&rft.aufirst=T\u014dichi&rft.btitle=Zen&rft.date=1978&rft.place=Osaka++Japan&rft.pub=Hoikusha&rft.edition=1st+ed.&rft.genre=book'
         self.assertEqual( unicode, type(q) )
         bib_dct = from_openurl( q )
         bib_json = json.dumps( bib_dct )
         bib2_dct = json.loads( bib_json )
         self.assertEqual( 'T\u014dichi', bib_dct['author'][0]['firstname'] )
-        self.assertEqual( 'T\u014dichi', bib_dct['author'][0]['firstname'] )
-        ## querystring sent to bibjson
-        q = 'sid=FirstSearch%3AWorldCat&genre=book&title=Zen&date=1978&aulast=Yoshioka&aufirst=T%C5%8Dichi&id=doi%3A&pid=6104671%3Cfssessid%3E0%3C%2Ffssessid%3E%3Cedition%3E1st+ed.%3C%2Fedition%3E&url_ver=Z39.88-2004&rfr_id=info%3Asid%2Ffirstsearch.oclc.org%3AWorldCat&rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook&rft.genre=book&req_dat=%3Csessionid%3E0%3C%2Fsessionid%3E&rfe_dat=%3Caccessionnumber%3E6104671%3C%2Faccessionnumber%3E&rft_id=info%3Aoclcnum%2F6104671&rft.aulast=Yoshioka&rft.aufirst=T%C5%8Dichi&rft.btitle=Zen&rft.date=1978&rft.place=Osaka++Japan&rft.pub=Hoikusha&rft.edition=1st+ed.&rft.genre=book'
-        self.assertEqual( unicode, type(q) )
-        bib_dct = from_openurl( q )
+        self.assertEqual( 'T\u014dichi', bib2_dct['author'][0]['firstname'] )
+
+    def test_unicode_in_byte_string(self):
+        """ Checks handling bytestring querystring containing unicode.
+            Checks that handling will not fail, though it may not return ideal data if the uri was not first converted to an iri. """
+        q = 'sid=FirstSearch:WorldCat&genre=book&title=Zen&date=1978&aulast=Yoshioka&aufirst=T\u014dichi&id=doi:&pid=6104671<fssessid>0</fssessid><edition>1st+ed.</edition>&url_ver=Z39.88-2004&rfr_id=info:sid/firstsearch.oclc.org:WorldCat&rft_val_fmt=info:ofi/fmt:kev:mtx:book&rft.genre=book&req_dat=<sessionid>0</sessionid>&rfe_dat=<accessionnumber>6104671</accessionnumber>&rft_id=info:oclcnum/6104671&rft.aulast=Yoshioka&rft.aufirst=T\u014dichi&rft.btitle=Zen&rft.date=1978&rft.place=Osaka++Japan&rft.pub=Hoikusha&rft.edition=1st+ed.&rft.genre=book'
+        q8 = q.encode( 'utf-8' )
+        self.assertEqual( str, type(q8) )
+        bib_dct = from_openurl( q8)
         bib_json = json.dumps( bib_dct )
         bib2_dct = json.loads( bib_json )
-        self.assertEqual( 'T\xc5\x8dichi', bib_dct['author'][0]['firstname'] )
-        self.assertEqual( 'T\xc5\x8dichi', bib_dct['author'][0]['firstname'] )
-
-
+        self.assertEqual( 'T\u014dichi', bib_dct['author'][0]['firstname'] )
+        self.assertEqual( 'T\u014dichi', bib2_dct['author'][0]['firstname'] )
 
     def test_oclc(self):
         q = 'id=info:sid/Brown-Vufind&title=Reassembling the social : an introduction to actor-network-theory /&date=2005&genre=book&pub=Oxford University Press,&edition=&isbn=0199256047&rfe_dat=<accessionnumber>58054359</accessionnumber'
@@ -392,5 +396,3 @@ def suite():
 
 if __name__ == '__main__':
     unittest.main()
-
-
