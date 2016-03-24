@@ -32,6 +32,8 @@ class OpenURLParser(object):
         else:
             log.debug( 'openurl perceived' )
             log.debug( 'type(openurl), `%s`' % type(openurl) )
+            if type(openurl) == str:
+                openurl = openurl.decode( 'utf-8' )
             log.debug( 'openurl, ```%s```' % openurl )
             self.query = openurl
             self.data = parse_qs(openurl)
