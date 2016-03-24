@@ -90,7 +90,6 @@ class TestFromOpenURL(unittest.TestCase):
         bib = from_openurl(q)
         #pprint(bib)
         ourl = to_openurl(bib)
-        #print ourl
         bib2 = from_openurl(ourl)
         #pprint(bib2)
         self.assertEqual(bib['journal']['shortcode'],

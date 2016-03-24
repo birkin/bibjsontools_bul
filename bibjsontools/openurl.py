@@ -37,8 +37,6 @@ class OpenURLParser(object):
             log.debug( 'openurl, ```%s```' % openurl )
             self.query = openurl
             self.data = parse_qs(openurl)
-            print 'type(self.data), `{}`'.format( type(self.data) )
-            print 'self.data, ```{}```'.format( pprint.pformat(self.data) )
 
     def _find_key(self, key_list, this_dict=None):
         """
