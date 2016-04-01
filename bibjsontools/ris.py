@@ -12,6 +12,14 @@ Adapted from <https://github.com/okfn/bibserver/blob/master/parserscrapers_plugi
 from bibjsontools import from_openurl
 
 
+class RISMaker( object ):
+
+    def foo(self):
+        return 'bar'
+
+    # end class RISMaker()
+
+
 FIELD_MAP = {
 	'access date': 'Y2',
 	'accession number': 'AN',
