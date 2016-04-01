@@ -3,27 +3,25 @@
 from __future__ import unicode_literals
 
 import json, logging, pprint, sys, unittest
-
-logging.basicConfig(
-    level=logging.WARNING,
-    format='[%(asctime)s] %(levelname)s [%(module)s-%(funcName)s()::%(lineno)d] %(message)s', datefmt='%d/%b/%Y %H:%M:%S' )
-log = logging.getLogger('bibjsontools')
-
 try:
     import bibjsontools  # accessed when running `python ./test.py`
 except:
-    sys.path.append( '../' )  # accessed when running `python ./openurl.py TestFromOpenURL.test_unicode_dump`
+    sys.path.append( '../' )  # accessed when running, eg, `python ./openurl.py TestFromOpenURL.test_unicode_dump`
     import bibjsontools
-
+from bibjsontools import from_dict
+from bibjsontools import from_openurl
+from bibjsontools import OpenURLParser
+from bibjsontools import to_openurl
 try:
     from urlparse import parse_qs
 except ImportError:
     from cgi import parse_qs
 
-from bibjsontools import from_openurl
-from bibjsontools import from_dict
-from bibjsontools import to_openurl
-from bibjsontools import OpenURLParser
+
+logging.basicConfig(
+    level=logging.WARNING,
+    format='[%(asctime)s] %(levelname)s [%(module)s-%(funcName)s()::%(lineno)d] %(message)s', datefmt='%d/%b/%Y %H:%M:%S' )
+log = logging.getLogger('bibjsontools')
 
 
 class TestFromOpenURL(unittest.TestCase):
