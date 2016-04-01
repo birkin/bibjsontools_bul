@@ -3,11 +3,14 @@
 from __future__ import unicode_literals
 
 """
-Convert from BibJSON to RIS.
-Adapted from https://github.com/okfn/bibserver/blob/master/parserscrapers_plugins/RISParser.py
+Convert from BibJSON to RIS file-format
+- [BibJSON]( http://okfnlabs.org/bibjson/ )
+- [RIS]( https://en.wikipedia.org/wiki/RIS_(file_format) )
+Adapted from <https://github.com/okfn/bibserver/blob/master/parserscrapers_plugins/RISParser.py>
 """
 
 from bibjsontools import from_openurl
+
 
 FIELD_MAP = {
 	'access date': 'Y2',
