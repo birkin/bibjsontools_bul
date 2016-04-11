@@ -97,17 +97,6 @@ class RISMaker( object ):
         ris_dct = { 'TY': ris_type }
         return ris_dct
 
-    # def _handle_type( self, item_type ):
-    #     """ Updates ris_dct['TY'].
-    #         Called by convert_to_ris() """
-    #     if item_type == 'article':
-    #         ris_type = 'JOUR'
-    #     elif item_type == 'book':
-    #         ris_type = 'BOOK'
-    #     else:
-    #         ris_type = 'GENERIC'
-    #     return ris_type
-
     def _check_author( self, ris_dct, author_list ):
         """ Checks author value (a list of dcts).
             Called by convert_to_ris() """
@@ -139,24 +128,6 @@ class RISMaker( object ):
             ris_v = bib_dct.get( bibjson_k )
             ris_dct[ris_k] = ris_v
         return ris_dct
-
-    # def convert_to_ris( self, bib_dct ):
-    #     """ Converts bibjson data to ris data. """
-    #     ris_dct = {}
-    #     ris_dct['TY'] = self._handle_type( bib_dct['type'] )
-    #     for k,v in bib_dct.items():
-    #         if k == 'author':
-    #             ris_dct = self._check_author( ris_dct, v )
-    #         elif k == 'journal':
-    #             ris_dct['JF'] = v.get('name')
-    #         elif k == 'identifier':
-    #             ris_dct = self._check_identifier( ris_dct, v )
-    #         else:
-    #             ris_k = FIELD_MAP.get(k, None)
-    #             if ris_k:
-    #                 ris_v = bib_dct.get(k)
-    #                 ris_dct[ris_k] = ris_v
-    #     return ris_dct
 
     # end class RISMaker()
 
