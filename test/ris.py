@@ -24,10 +24,43 @@ class TestRISMaker(unittest.TestCase):
         self.ris_maker = RISMaker()
 
     def test_parse_book(self):
+        """ Checks ris values for book querystring. """
         qstring = 'sid=FirstSearch%3AWorldCat&genre=book&isbn=9780385475723&title=The+blind+assassin&aulast=Atwood&aufirst=Margaret&auinitm=Eleanor&id=doi%3A&pid=%3Caccession+number%3E43287739%3C%2Faccession+number%3E%3Cfssessid%3Efsapp2-48452-f3edqijd-fzttco%3C%2Ffssessid%3E%3Cedition%3E1st+ed.+in+the+U.S.A.%3C%2Fedition%3E&url_ver=Z39.88-2004&rfr_id=info%3Asid%2Ffirstsearch.oclc.org%3AWorldCat&rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook&req_id=%3Csessionid%3Efsapp2-48452-f3edqijd-fzttco%3C%2Fsessionid%3E&rfe_dat=%3Caccessionnumber%3E43287739%3C%2Faccessionnumber%3E&rft_ref_fmt=info%3Aofi%2Ffmt%3Axml%3Axsd%3Aoai_dc&rft_ref=http%3A%2F%2Fpartneraccess.oclc.org%2Fwcpa%2Fservlet%2FOUDCXML%3Foclcnum%3D43287739&rft_id=info%3Aoclcnum%2F43287739&rft_id=urn%3AISBN%3A9780385475723&rft.aulast=Atwood&rft.aufirst=Margaret&rft.auinitm=Eleanor&rft.btitle=The+blind+assassin&rft.isbn=9780385475723&rft.place=New+York&rft.pub=N.A.+Talese&rft.edition=1st+ed.+in+the+U.S.A.&rft.genre=book'
         bib_dct = from_openurl( qstring )
-        self.assertEqual(
-            {'foo': 'bar'}, self.ris_maker.parse( bib_dct ) )
+        self.assertEqual( {
+            'AU': 'Atwood, Margaret',
+            'PB': 'N.A. Talese',
+            'SN': '9780385475723',
+            'TI': 'The blind assassin',
+            'TY': 'BOOK'},
+            self.ris_maker.convert_to_ris( bib_dct ) )
+
+    def test_parse_simple_book_with_doi(self):
+        """ Checks ris values for simple-book querystring. """
+        qstring = 'rft.au=Smith,John&rft.title=A book&rft.genre=book&doi=1234'
+        bib_dct = from_openurl( qstring )
+        self.assertEqual( {
+            'AU': 'Smith,John',
+            'DO': 'doi:1234',
+            'TI': 'A book',
+            'TY': 'BOOK' },
+            self.ris_maker.convert_to_ris( bib_dct )
+            )
+
+    def test_parse_journal(self):
+        """ Checks ris values for journal querystring. """
+        qstring = 'volume=26&genre=article&spage=293&sid=EBSCO:aph&title=Natural+Resources+Forum&date=20021101&issue=4&issn=01650203&pid=&atitle=Forest+products+and+traditional+peoples%3a+Economic%2c+biological%2c+and+cultural+considerations.'
+        bib_dct = from_openurl( qstring )
+        self.assertEqual( {
+            'IS': u'4',
+            'JF': u'Natural Resources Forum',
+            'PY': u'2002',
+            'SN': u'01650203',
+            'SP': u'293 - EOA',
+            'TI': u'Forest products and traditional peoples: Economic, biological, and cultural considerations.',
+            'TY': u'JOUR',
+            'VL': u'26' },
+            self.ris_maker.convert_to_ris( bib_dct ) )
 
     # end class TestRISMaker()
 
@@ -76,7 +109,13 @@ class TestFromOpenURL(unittest.TestCase):
 
 def suite():
     suite1 = unittest.makeSuite(TestFromOpenURL, 'test')
-    return suite1
+    suite2 = unittest.makeSuite(TestRISMaker, 'test')
+    all = unittest.TestSuite( (suite1, suite2) )
+    return all
+
+# def suite():
+#     suite1 = unittest.makeSuite(TestFromOpenURL, 'test')
+#     return suite1
 
 
 if __name__ == '__main__':
