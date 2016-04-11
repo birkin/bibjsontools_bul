@@ -81,10 +81,7 @@ class RISMaker( object ):
             elif k == 'identifier':
                 ris_dct = self._check_identifier( ris_dct, v )
             else:
-                ris_k = FIELD_MAP.get(k, None)
-                if ris_k:
-                    ris_v = bib_dct.get(k)
-                    ris_dct[ris_k] = ris_v
+                ris_dct = self._apply_mapper( ris_dct, k, bib_dct )
         return ris_dct
 
     def _handle_type( self, item_type ):
@@ -121,6 +118,15 @@ class RISMaker( object ):
                 ris_dct['SN'] = id_value
         return ris_dct
 
+    def _apply_mapper( self, ris_dct, bibjson_k, bib_dct ):
+        """ Checks FIELD_MAP with key-val.
+            Called by convert_to_ris() """
+        ris_k = self.FIELD_MAP.get( bibjson_k, None )
+        if ris_k:
+            ris_v = bib_dct.get( bibjson_k )
+            ris_dct[ris_k] = ris_v
+        return ris_dct
+
     # def convert_to_ris( self, bib_dct ):
     #     """ Converts bibjson data to ris data. """
     #     ris_dct = {}
@@ -131,16 +137,7 @@ class RISMaker( object ):
     #         elif k == 'journal':
     #             ris_dct['JF'] = v.get('name')
     #         elif k == 'identifier':
-    #             for idt in v:
-    #                 this = idt['id']
-    #                 if idt['type'] == 'doi':
-    #                     ris_dct['DO'] = this
-    #                 elif idt['type'] == 'issn':
-    #                     ris_dct['SN'] = this
-    #                 elif idt['type'] == 'isbn':
-    #                     ris_dct['SN'] = this
-    #                 #elif idt['type'] == 'pmid':
-    #                 #   ris_dct[]
+    #             ris_dct = self._check_identifier( ris_dct, v )
     #         else:
     #             ris_k = FIELD_MAP.get(k, None)
     #             if ris_k:
