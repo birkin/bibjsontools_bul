@@ -17,6 +17,41 @@ class RISMaker( object ):
     def foo(self):
         return 'bar'
 
+    def convert_to_ris( self, bib_dct ):
+        """ Converts bibjson data to ris data. """
+        ris_dct = {}
+        if bib_dct['type'] == 'article':
+            ris_dct['TY'] = 'JOUR'
+        elif bib_dct['type'] == 'book':
+            ris_dct['TY'] = 'BOOK'
+        else:
+            ris_dct['TY'] = 'GENERIC'
+        for k,v in bib_dct.items():
+            if k == 'author':
+                for author in v:
+                    name = author.get('name')
+                    if name:
+                        ris_dct['AU'] = name
+            elif k == 'journal':
+                ris_dct['JF'] = v.get('name')
+            elif k == 'identifier':
+                for idt in v:
+                    this = idt['id']
+                    if idt['type'] == 'doi':
+                        ris_dct['DO'] = this
+                    elif idt['type'] == 'issn':
+                        ris_dct['SN'] = this
+                    elif idt['type'] == 'isbn':
+                        ris_dct['SN'] = this
+                    #elif idt['type'] == 'pmid':
+                    #   ris_dct[]
+            else:
+                ris_k = FIELD_MAP.get(k, None)
+                if ris_k:
+                    ris_v = bib_dct.get(k)
+                    ris_dct[ris_k] = ris_v
+        return ris_dct
+
     # end class RISMaker()
 
 
