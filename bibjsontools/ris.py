@@ -23,10 +23,8 @@ class RISMaker( object ):
         ris_dct['TY'] = self._handle_type( bib_dct['type'] )
         for k,v in bib_dct.items():
             if k == 'author':
-                for author in v:
-                    name = author.get('name')
-                    if name:
-                        ris_dct['AU'] = name
+                ris_dct = self._check_author( ris_dct, v )
+
             elif k == 'journal':
                 ris_dct['JF'] = v.get('name')
             elif k == 'identifier':
@@ -58,15 +56,20 @@ class RISMaker( object ):
             ris_type = 'GENERIC'
         return ris_type
 
+    def _check_author( self, ris_dct, author_list ):
+        """ Checks author value (a list).
+            Called by convert_to_ris() """
+        for author in author_list:
+            name = author.get( 'name' )
+            if name:
+                ris_dct['AU'] = name
+                break
+        return ris_dct
+
     # def convert_to_ris( self, bib_dct ):
     #     """ Converts bibjson data to ris data. """
     #     ris_dct = {}
-    #     if bib_dct['type'] == 'article':
-    #         ris_dct['TY'] = 'JOUR'
-    #     elif bib_dct['type'] == 'book':
-    #         ris_dct['TY'] = 'BOOK'
-    #     else:
-    #         ris_dct['TY'] = 'GENERIC'
+    #     ris_dct['TY'] = self._handle_type( bib_dct['type'] )
     #     for k,v in bib_dct.items():
     #         if k == 'author':
     #             for author in v:
