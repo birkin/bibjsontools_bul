@@ -71,8 +71,9 @@ class RISMaker( object ):
 
     def convert_to_ris( self, bib_dct ):
         """ Converts bibjson data to ris data. """
-        ris_dct = {}
-        ris_dct['TY'] = self._handle_type( bib_dct['type'] )
+        # ris_dct = {}
+        # ris_dct['TY'] = self._handle_type( bib_dct['type'] )
+        ris_dct = self._handle_type( bib_dct['type'] )
         for k,v in bib_dct.items():
             if k == 'author':
                 ris_dct = self._check_author( ris_dct, v )
@@ -85,7 +86,7 @@ class RISMaker( object ):
         return ris_dct
 
     def _handle_type( self, item_type ):
-        """ Updates ris_dct['TY'].
+        """ Initializes ris_dct & selfets ris_dct['TY'].
             Called by convert_to_ris() """
         if item_type == 'article':
             ris_type = 'JOUR'
@@ -93,7 +94,19 @@ class RISMaker( object ):
             ris_type = 'BOOK'
         else:
             ris_type = 'GENERIC'
-        return ris_type
+        ris_dct = { 'TY': ris_type }
+        return ris_dct
+
+    # def _handle_type( self, item_type ):
+    #     """ Updates ris_dct['TY'].
+    #         Called by convert_to_ris() """
+    #     if item_type == 'article':
+    #         ris_type = 'JOUR'
+    #     elif item_type == 'book':
+    #         ris_type = 'BOOK'
+    #     else:
+    #         ris_type = 'GENERIC'
+    #     return ris_type
 
     def _check_author( self, ris_dct, author_list ):
         """ Checks author value (a list of dcts).
