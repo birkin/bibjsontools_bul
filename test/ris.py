@@ -79,7 +79,7 @@ class TestFromOpenURL(unittest.TestCase):
         bib_dct = from_openurl(q)
         # log.warning( 'bib_dct, ```{}```'.format(pprint.pformat(bib_dct)) )
         r = ris.convert(bib_dct)
-        self.assertEqual( unicode, type(r) )
+        self.assertEqual( str, type(r) )
         # log.warning( 'r, ```{}```'.format(r) )
         chunks = ris_chunker(r)
         # log.warning( 'type(chunks), `{}`'.format(type(chunks)) )
