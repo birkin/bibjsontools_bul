@@ -1,10 +1,19 @@
 # -*- coding: utf-8 -*-
 
-from __future__ import unicode_literals
+"""
+To test single file
+
+$ pwd
+/path/to/bibjsontools_bul/test/
+
+$ python ./openurl.py TestFromOpenURL.test_unicode_in_byte_string
+(output)
+"""
 
 import unittest
 from test import openurl
 from test import ris
+
 
 def suite():
     test_suite = unittest.TestSuite()
