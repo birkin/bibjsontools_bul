@@ -1,25 +1,25 @@
 # -*- coding: utf-8 -*-
 
-from __future__ import unicode_literals
-
 """
 Converting OpenURLs to BibJSON and back.
 """
 
-import logging, pprint, urllib
+import logging, pprint, sys, urllib
+assert sys.version_info.major > 2
 
-try:
-    from urlparse import parse_qs
-except ImportError:
-    from cgi import parse_qs
+from urllib.parse import parse_qs
+
 
 #List of keys that should be present in any bibjson object.
 REQUIRED_KEYS = ['title']
 
 
 logging.basicConfig(
-    level=logging.WARNING,
+    level=logging.DEBUG,
     format='[%(asctime)s] %(levelname)s [%(module)s-%(funcName)s()::%(lineno)d] %(message)s', datefmt='%d/%b/%Y %H:%M:%S' )
+# logging.basicConfig(
+#     level=logging.WARNING,
+#     format='[%(asctime)s] %(levelname)s [%(module)s-%(funcName)s()::%(lineno)d] %(message)s', datefmt='%d/%b/%Y %H:%M:%S' )
 log = logging.getLogger( 'bibjsontools' )
 
 
@@ -32,7 +32,7 @@ class OpenURLParser(object):
         else:
             log.debug( 'openurl perceived' )
             log.debug( 'type(openurl), `%s`' % type(openurl) )
-            if type(openurl) == str:
+            if type(openurl) == bytes:
                 openurl = openurl.decode( 'utf-8' )
             log.debug( 'openurl, ```%s```' % openurl )
             self.query = openurl
@@ -256,7 +256,8 @@ class OpenURLParser(object):
                     if auinitm:
                         au['_minitial'] = auinitm
                     #Put the full name (minus middlename) together now if we can.
-                    if not au.has_key('name'):
+                    # if not au.has_key('name'):
+                    if not 'name' in au.keys():
                         #If there isn't a first and last name, just use last.
                         last = au.get('lastname', '')
                         first = au.get('firstname', '')
@@ -334,7 +335,7 @@ class OpenURLParser(object):
         #Pages
         d.update(self.pages())
         #Remove empty keys - except those in the required keys list.
-        for k,v in d.items():
+        for k,v in list( d.items() ):
             if not v:
                 if k in REQUIRED_KEYS:
                     #Set to unknown
@@ -460,7 +461,7 @@ class BibJSONToOpenURL(object):
             elif idt['type'] == 'oclc':
                 out['rft_id'] = 'http://www.worldcat.org/oclc/%s' % idt['id']
         #Remove empty keys
-        for k,v in out.items():
+        for k,v in list( out.items() ):
             if (not v) or (v == ''):
                 del out[k]
         #Handle unicode and url quoting.
@@ -468,7 +469,8 @@ class BibJSONToOpenURL(object):
         #http://stackoverflow.com/a/8152242
         kevs = []
         log.debug( 'out before k-v processing, ```%s```' % pprint.pformat(out) )
-        for k,v in out.iteritems():
+        # for k,v in out.iteritems():  # python2
+        for k,v in out.items():
             # if isinstance(v, unicode):
             #     v = v.encode('utf-8', 'ignore')
             log.debug( 'k,v -- ```%s, %s```' % (k,v) )
@@ -476,10 +478,13 @@ class BibJSONToOpenURL(object):
             k8 = k.encode( 'utf-8', 'ignore' )
             v8 = v.encode( 'utf-8', 'ignore' )
             safe8 = '/'.encode( 'utf-8' )
-            _k = urllib.quote_plus( k8, safe=safe8 )
-            _v = urllib.quote_plus( v8, safe=safe8 )
+            # _k = urllib.quote_plus( k8, safe=safe8 )  # python2
+            # _v = urllib.quote_plus( v8, safe=safe8 )
+            _k = urllib.parse.quote_plus( k8, safe=safe8 )
+            _v = urllib.parse.quote_plus( v8, safe=safe8 )
             log.debug( 'type(_k), type(_v), `%s, %s`' % (type(_k), type(_v)) )
-            kevs.append( '%s=%s' % (_k.decode('utf-8'), _v.decode('utf-8')) )
+            # kevs.append( '%s=%s' % (_k.decode('utf-8'), _v.decode('utf-8')) )
+            kevs.append( f'{_k}={_v}' )
         log.debug( 'kevs, ```%s```' % pprint.pformat(kevs) )
         openurl = '&'.join( kevs )
         log.debug( 'openurl, ```%s```' % openurl )
