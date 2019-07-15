@@ -168,7 +168,7 @@ class TestFromOpenURL(unittest.TestCase):
             Checks that handling will not fail, though it may not return ideal data if the uri was not first converted to an iri. """
         q = 'sid=FirstSearch:WorldCat&genre=book&title=Zen&date=1978&aulast=Yoshioka&aufirst=T\u014dichi&id=doi:&pid=6104671<fssessid>0</fssessid><edition>1st+ed.</edition>&url_ver=Z39.88-2004&rfr_id=info:sid/firstsearch.oclc.org:WorldCat&rft_val_fmt=info:ofi/fmt:kev:mtx:book&rft.genre=book&req_dat=<sessionid>0</sessionid>&rfe_dat=<accessionnumber>6104671</accessionnumber>&rft_id=info:oclcnum/6104671&rft.aulast=Yoshioka&rft.aufirst=T\u014dichi&rft.btitle=Zen&rft.date=1978&rft.place=Osaka++Japan&rft.pub=Hoikusha&rft.edition=1st+ed.&rft.genre=book'
         q8 = q.encode( 'utf-8' )
-        self.assertEqual( str, type(q8) )
+        self.assertEqual( bytes, type(q8) )
         bib_dct = from_openurl( q8)
         bib_json = json.dumps( bib_dct )
         bib2_dct = json.loads( bib_json )
